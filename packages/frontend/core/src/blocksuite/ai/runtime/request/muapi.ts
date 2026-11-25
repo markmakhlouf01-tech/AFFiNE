@@ -2,7 +2,7 @@ import { RequestTimeoutError } from '../../provider/error';
 import { handleError } from './copilot-client';
 
 export const MUAPI_DEFAULT_IMAGE_MODEL = 'flux-dev-image';
-export const MUAPI_DEFAULT_VIDEO_MODEL = 'seedance-lite-t2v';
+export const MUAPI_DEFAULT_VIDEO_MODEL = 'kling-v3.0-standard-text-to-video';
 
 const POLL_INTERVAL = 2000;
 const DEFAULT_TIMEOUT = 5 * 60 * 1000;

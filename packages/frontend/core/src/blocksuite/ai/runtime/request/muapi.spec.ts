@@ -165,7 +165,7 @@ describe('muapiImageStream', () => {
       '/api/copilot/muapi/generations/vid%201/outputs/0',
     ]);
     expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({
-      model: 'seedance-lite-t2v',
+      model: 'kling-v3.0-standard-text-to-video',
       input: { prompt: 'a cat surfing' },
     });
   });
