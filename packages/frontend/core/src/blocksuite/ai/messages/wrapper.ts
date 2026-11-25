@@ -115,3 +115,35 @@ export const createImageRenderer: (
     >`;
   };
 };
+
+export const createVideoRenderer: (
+  host: EditorHost,
+  options?: AIAnswerWrapperOptions
+) => AffineAIPanelWidgetConfig['answerRenderer'] = (host, options) => {
+  return (answer, state) => {
+    if (state === 'generating') {
+      const panel = getAIPanelWidget(host);
+      panel.generatingElement?.updateLoadingProgress(2);
+      return nothing;
+    }
+
+    if (state !== 'finished' && state !== 'error') {
+      return nothing;
+    }
+
+    const template = html`<style>
+        .ai-answer-video video {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+      </style>
+      <div class="ai-answer-video" data-testid="ai-answer-video">
+        <video src=${answer} controls playsinline></video>
+      </div>`;
+
+    return html`<ai-answer-wrapper .options=${options}
+      >${template}</ai-answer-wrapper
+    >`;
+  };
+};

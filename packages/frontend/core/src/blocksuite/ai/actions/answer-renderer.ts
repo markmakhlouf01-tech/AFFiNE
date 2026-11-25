@@ -8,11 +8,15 @@ import {
   createMindmapRenderer,
 } from '../messages/mindmap';
 import { createSlidesRenderer } from '../messages/slides-renderer';
-import { createIframeRenderer, createImageRenderer } from '../messages/wrapper';
+import {
+  createIframeRenderer,
+  createImageRenderer,
+  createVideoRenderer,
+} from '../messages/wrapper';
 import type { AIContext } from '../utils/context';
 import { isMindmapChild, isMindMapRoot } from '../utils/edgeless';
 import type { AffineAIPanelWidget } from '../widgets/ai-panel/ai-panel';
-import { IMAGE_ACTIONS } from './consts';
+import { IMAGE_ACTIONS, VIDEO_ACTIONS } from './consts';
 import { responseToExpandMindmap } from './edgeless-response';
 
 type AnswerRenderer = NonNullable<
@@ -47,6 +51,10 @@ export function actionToAnswerRenderer<
 
   if (id === 'makeItReal') {
     return createIframeRenderer(host, { height: 300 });
+  }
+
+  if (VIDEO_ACTIONS.includes(id)) {
+    return createVideoRenderer(host, { height: 300 });
   }
 
   if (IMAGE_ACTIONS.includes(id)) {

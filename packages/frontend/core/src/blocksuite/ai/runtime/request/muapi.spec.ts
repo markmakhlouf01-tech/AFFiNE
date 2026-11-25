@@ -4,7 +4,7 @@
 import { describe, expect, test, vi } from 'vitest';
 
 import { GeneralNetworkError, RequestTimeoutError } from '../../provider/error';
-import { muapiImageStream } from './muapi';
+import { muapiImageStream, muapiVideoStream } from './muapi';
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -143,5 +143,51 @@ describe('muapiImageStream', () => {
 
     expect(outputs).toEqual([]);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  test('video stream uses the video model and yields a same-origin output url', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        requestId: 'vid 1',
+        status: 'completed',
+        outputs: ['https://cdn.example/a.mp4', 'https://cdn.example/b.mp4'],
+      })
+    );
+
+    const outputs = await collect(
+      muapiVideoStream({
+        prompt: 'a cat surfing',
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      })
+    );
+
+    expect(outputs).toEqual([
+      '/api/copilot/muapi/generations/vid%201/outputs/0',
+    ]);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({
+      model: 'seedance-lite-t2v',
+      input: { prompt: 'a cat surfing' },
+    });
+  });
+
+  test('video stream yields nothing when the job has no outputs', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({ requestId: 'vid1', status: 'completed', outputs: [] })
+      );
+
+    const outputs = await collect(
+      muapiVideoStream({
+        prompt: 'a cat surfing',
+        model: 'veo3-fast-text-to-video',
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      })
+    );
+
+    expect(outputs).toEqual([]);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).model).toBe(
+      'veo3-fast-text-to-video'
+    );
   });
 });

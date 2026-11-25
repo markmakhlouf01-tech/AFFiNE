@@ -18,6 +18,7 @@ import {
   MakeItRealIcon,
   MindmapIcon,
   PenIcon,
+  PlayIcon,
   PresentationIcon,
   SearchIcon,
   SelectionIcon,
@@ -348,6 +349,13 @@ const GenerateFromTextAIGroup: AIItemGroupConfig = {
       icon: ImageIcon(),
       showWhen: textBlockShowWhen,
       handler: actionToHandler('createMuapiImage', AIImageIconWithAnimation),
+    },
+    {
+      name: 'Generate a video with Muapi',
+      testId: 'action-generate-muapi-video',
+      icon: PlayIcon(),
+      showWhen: textBlockShowWhen,
+      handler: actionToHandler('createMuapiVideo', AIImageIconWithAnimation),
     },
     {
       name: 'Brainstorm ideas with mind map',

@@ -5,6 +5,7 @@ export const EXCLUDING_COPY_ACTIONS = [
   'createSlides',
   'createImage',
   'createMuapiImage',
+  'createMuapiVideo',
   'findActions',
   'filterImage',
   'processImage',
@@ -17,6 +18,7 @@ export const EXCLUDING_REPLACE_ACTIONS = [
   'createSlides',
   'createImage',
   'createMuapiImage',
+  'createMuapiVideo',
   'filterImage',
   'processImage',
 ];
@@ -30,6 +32,8 @@ export const IMAGE_ACTIONS = [
   'filterImage',
 ];
 
+export const VIDEO_ACTIONS = ['createMuapiVideo'];
+
 const commonImageStages = ['Generating image', 'Rendering image'];
 
 export const generatingStages: {
@@ -40,6 +44,7 @@ export const generatingStages: {
   createSlides: ['Thinking about this topic', 'Rendering slides'],
   createImage: commonImageStages,
   createMuapiImage: commonImageStages,
+  createMuapiVideo: ['Generating video', 'Rendering video'],
   processImage: commonImageStages,
   filterImage: commonImageStages,
 };

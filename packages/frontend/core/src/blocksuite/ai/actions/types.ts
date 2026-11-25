@@ -268,6 +268,9 @@ declare global {
       createMuapiImage<T extends AIImageActionOptions>(
         options: T
       ): Promise<AIActionTextResponse<T>>;
+      createMuapiVideo<T extends AITextActionOptions>(
+        options: T
+      ): Promise<AIActionTextResponse<T>>;
       processImage<T extends ProcessImageOptions>(
         options: T
       ): Promise<AIActionTextResponse<T>>;

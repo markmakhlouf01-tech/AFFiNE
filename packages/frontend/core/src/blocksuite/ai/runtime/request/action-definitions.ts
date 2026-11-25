@@ -9,7 +9,7 @@ export type AIActionOptions = BlockSuitePresets.AITextActionOptions &
 export type AIActionDefinition = {
   id: AIActionId;
   promptName: PromptKey | ((options: AIActionOptions) => PromptKey);
-  responseType: 'text' | 'image';
+  responseType: 'text' | 'image' | 'video';
   /** Runs outside the copilot session pipeline, through the server's Muapi proxy. */
   executor?: 'muapi';
   endpoint?: Endpoint;
@@ -176,6 +176,19 @@ Could you make a new website based on these notes and send back just the html fi
     validate: options => {
       if (!options.input?.trim()) {
         throw new Error('Muapi image generation needs a text prompt');
+      }
+    },
+  },
+  createMuapiVideo: {
+    id: 'createMuapiVideo',
+    promptName: 'Generate image',
+    responseType: 'video',
+    executor: 'muapi',
+    timeout: 10 * 60 * 1000,
+    buildContent: options => options.input,
+    validate: options => {
+      if (!options.input?.trim()) {
+        throw new Error('Muapi video generation needs a text prompt');
       }
     },
   },

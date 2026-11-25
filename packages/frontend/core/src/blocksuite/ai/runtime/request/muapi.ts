@@ -2,6 +2,7 @@ import { RequestTimeoutError } from '../../provider/error';
 import { handleError } from './copilot-client';
 
 export const MUAPI_DEFAULT_IMAGE_MODEL = 'flux-dev-image';
+export const MUAPI_DEFAULT_VIDEO_MODEL = 'seedance-lite-t2v';
 
 const POLL_INTERVAL = 2000;
 const DEFAULT_TIMEOUT = 5 * 60 * 1000;
@@ -13,7 +14,7 @@ type MuapiPrediction = {
   error?: string;
 };
 
-export type MuapiImageOptions = {
+export type MuapiGenerationOptions = {
   prompt: string;
   model?: string;
   signal?: AbortSignal;
@@ -49,54 +50,77 @@ function wait(ms: number, signal?: AbortSignal) {
   });
 }
 
+async function runGeneration({
+  prompt,
+  model,
+  signal,
+  timeout = DEFAULT_TIMEOUT,
+  fetchImpl = (...args) => fetch(...args),
+  pollInterval = POLL_INTERVAL,
+}: MuapiGenerationOptions & { model: string }) {
+  const deadline = Date.now() + timeout;
+  let prediction = await request(fetchImpl, '/api/copilot/muapi/generations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: { prompt } }),
+    signal,
+  });
+
+  while (
+    prediction.status !== 'completed' &&
+    prediction.status !== 'failed' &&
+    prediction.status !== 'cancelled'
+  ) {
+    if (signal?.aborted) return null;
+    if (Date.now() > deadline) throw new RequestTimeoutError();
+    await wait(pollInterval, signal);
+    if (signal?.aborted) return null;
+    prediction = await request(
+      fetchImpl,
+      `/api/copilot/muapi/generations/${encodeURIComponent(prediction.requestId)}`,
+      { signal }
+    );
+  }
+
+  if (prediction.status !== 'completed') {
+    throw handleError(
+      new Error(prediction.error || `Muapi generation ${prediction.status}`)
+    );
+  }
+  return prediction;
+}
+
 /**
  * Generates an image through the server's Muapi proxy and yields the result URL,
  * matching the shape of the copilot image stream (one attachment URL per image).
  */
 export function muapiImageStream({
-  prompt,
   model = MUAPI_DEFAULT_IMAGE_MODEL,
-  signal,
-  timeout = DEFAULT_TIMEOUT,
-  fetchImpl = (...args) => fetch(...args),
-  pollInterval = POLL_INTERVAL,
-}: MuapiImageOptions): AsyncIterable<string> {
+  ...options
+}: MuapiGenerationOptions): AsyncIterable<string> {
   return {
     async *[Symbol.asyncIterator]() {
-      const deadline = Date.now() + timeout;
-      let prediction = await request(
-        fetchImpl,
-        '/api/copilot/muapi/generations',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, input: { prompt } }),
-          signal,
-        }
-      );
+      const prediction = await runGeneration({ ...options, model });
+      if (prediction) yield* prediction.outputs;
+    },
+  };
+}
 
-      while (
-        prediction.status !== 'completed' &&
-        prediction.status !== 'failed' &&
-        prediction.status !== 'cancelled'
-      ) {
-        if (signal?.aborted) return;
-        if (Date.now() > deadline) throw new RequestTimeoutError();
-        await wait(pollInterval, signal);
-        if (signal?.aborted) return;
-        prediction = await request(
-          fetchImpl,
-          `/api/copilot/muapi/generations/${encodeURIComponent(prediction.requestId)}`,
-          { signal }
-        );
-      }
-
-      if (prediction.status !== 'completed') {
-        throw handleError(
-          new Error(prediction.error || `Muapi generation ${prediction.status}`)
-        );
-      }
-      yield* prediction.outputs;
+/**
+ * Generates a video and yields same-origin URLs of its outputs, served by the
+ * server so they can be downloaded into the doc regardless of the CDN's CORS.
+ */
+export function muapiVideoStream({
+  model = MUAPI_DEFAULT_VIDEO_MODEL,
+  ...options
+}: MuapiGenerationOptions): AsyncIterable<string> {
+  return {
+    async *[Symbol.asyncIterator]() {
+      const prediction = await runGeneration({ ...options, model });
+      // The AI panel shows a single answer, so only the first output is used.
+      if (!prediction?.outputs.length) return;
+      const id = encodeURIComponent(prediction.requestId);
+      yield `/api/copilot/muapi/generations/${id}/outputs/0`;
     },
   };
 }

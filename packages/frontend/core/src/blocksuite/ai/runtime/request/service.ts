@@ -23,7 +23,7 @@ import {
   type CopilotClient as CopilotClientType,
 } from './copilot-client';
 import { textToText, toImage } from './message-transport';
-import { muapiImageStream } from './muapi';
+import { muapiImageStream, muapiVideoStream } from './muapi';
 
 type CreateSessionOptions = BlockSuitePresets.AICreateSessionOptions;
 
@@ -320,7 +320,11 @@ export class AIRequestService {
     const definition = getActionDefinition(id);
     definition.validate?.(options);
     if (definition.executor === 'muapi') {
-      const stream = muapiImageStream({
+      const generate =
+        definition.responseType === 'video'
+          ? muapiVideoStream
+          : muapiImageStream;
+      const stream = generate({
         prompt: definition.buildContent?.(options) ?? options.input ?? '',
         model: typeof options.model === 'string' ? options.model : undefined,
         signal: options.signal as AbortSignal | undefined,

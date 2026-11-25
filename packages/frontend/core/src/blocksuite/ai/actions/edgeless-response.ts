@@ -47,6 +47,7 @@ import {
   getCopilotSelectedElems,
   getSurfaceElementFromEditor,
 } from '../utils/selection-utils';
+import { fetchVideoToFile, insertVideoOnCanvas } from '../utils/video';
 import type { AffineAIPanelWidget } from '../widgets/ai-panel/ai-panel';
 import type { EdgelessCopilotWidget } from '../widgets/edgeless-copilot';
 import { EXCLUDING_INSERT_ACTIONS, generatingStages } from './consts';
@@ -183,6 +184,9 @@ async function edgelessResponseHandler<
     case 'processImage':
       responseToCreateImage(host);
       break;
+    case 'createMuapiVideo':
+      responseToCreateVideo(host);
+      break;
     default:
       defaultHandler(host);
       break;
@@ -306,6 +310,26 @@ const defaultHandler = (host: EditorHost) => {
     createBlockAndInsert(host, panel.answer, 'note');
   }
 };
+
+function responseToCreateVideo(host: EditorHost) {
+  const aiPanel = getAIPanelWidget(host);
+  const url = aiPanel.answer;
+  if (!url) return;
+
+  const edgelessCopilot = getEdgelessCopilotWidget(host);
+  const { minX, minY } = edgelessCopilot.determineInsertionBounds();
+  edgelessCopilot.hideCopilotPanel();
+  aiPanel.hide();
+
+  fetchVideoToFile(url)
+    .then(file => {
+      if (!file) return;
+      const gfx = host.std.get(GfxControllerIdentifier);
+      const [x, y] = gfx.viewport.toViewCoord(minX, minY);
+      return insertVideoOnCanvas(host, file, [x, y]);
+    })
+    .catch(console.error);
+}
 
 /**
  * Image handler for inserting generated image into the edgeless document.

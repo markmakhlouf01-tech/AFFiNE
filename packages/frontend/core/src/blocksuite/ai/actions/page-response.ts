@@ -31,6 +31,7 @@ import { insertAbove, insertBelow, replace } from '../utils/editor-actions';
 import { preprocessHtml } from '../utils/html';
 import { fetchImageToFile } from '../utils/image';
 import { getSelections } from '../utils/selection-utils';
+import { fetchVideoToFile, insertVideoNextTo } from '../utils/video';
 
 const PADDING = 100;
 
@@ -54,6 +55,9 @@ export async function pageResponseHandler<
     case 'filterImage':
     case 'processImage':
       responseToCreateImage(host, place);
+      break;
+    case 'createMuapiVideo':
+      responseToCreateVideo(host, place);
       break;
     default:
       await (place === 'after'
@@ -205,6 +209,21 @@ export function responseToCreateImage(host: EditorHost, place: Place) {
       if (!targetModel) return;
 
       return addSiblingImageBlocks(host.std, [file], targetModel, place);
+    })
+    .catch(console.error);
+}
+
+export function responseToCreateVideo(host: EditorHost, place: Place) {
+  const aiPanel = getAIPanelWidget(host);
+  const { answer } = aiPanel;
+  if (!answer) return;
+
+  fetchVideoToFile(answer)
+    .then(file => {
+      if (!file) return;
+      const targetModel = getTargetModel(host, place);
+      if (!targetModel) return;
+      return insertVideoNextTo(host, file, targetModel, place);
     })
     .catch(console.error);
 }

@@ -19,6 +19,7 @@ import {
   MindmapIcon,
   MindmapNodeIcon,
   PenIcon,
+  PlayIcon,
   PresentationIcon,
   SearchIcon,
   SelectionIcon,
@@ -403,6 +404,26 @@ const generateFromTextGroup: AIItemGroupConfig = {
         undefined,
         async (host, ctx) => {
           // Muapi generation is text to image: use the selection's text, or
+          // what the user typed in the AI panel.
+          const content =
+            ctx.get().content?.trim() ||
+            getAIPanelWidget(host).inputText?.trim();
+          if (!content) return;
+          return { input: content };
+        }
+      ),
+    },
+    {
+      name: 'Generate a video with Muapi',
+      icon: PlayIcon(),
+      testId: 'action-generate-muapi-video',
+      showWhen: notAllAIChatBlockShowWhen,
+      handler: actionToHandler(
+        'createMuapiVideo',
+        AIImageIconWithAnimation,
+        undefined,
+        async (host, ctx) => {
+          // Muapi generation is text to video: use the selection's text, or
           // what the user typed in the AI panel.
           const content =
             ctx.get().content?.trim() ||

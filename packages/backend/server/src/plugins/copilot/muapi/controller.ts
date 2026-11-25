@@ -1,11 +1,22 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import type { Request } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 
 import {
   BadRequest,
   CallMetric,
   Config,
   CopilotProviderSideError,
+  NotFound,
+  safeFetch,
   Throttle,
 } from '../../../base';
 import { CurrentUser } from '../../../core/auth';
@@ -19,6 +30,10 @@ import {
 } from './client';
 
 const MAX_INPUT_BYTES = 64 * 1024;
+const MAX_OUTPUT_BYTES = 200 * 1024 * 1024;
+const OUTPUT_TIMEOUT_MS = 120_000;
+// Results are only returned to the caller, never delivered elsewhere.
+const BLOCKED_INPUT_KEYS = new Set(['webhook', 'webhook_url']);
 
 interface MuapiGenerationBody {
   model?: unknown;
@@ -80,14 +95,11 @@ export class CopilotMuapiController {
       throw new BadRequest('`input` is too large');
     }
 
-    const client = this.client();
-    return this.call(() =>
-      client.submit(
-        model,
-        input as Record<string, unknown>,
-        getSignal(req).signal
-      )
+    const params = Object.fromEntries(
+      Object.entries(input).filter(([key]) => !BLOCKED_INPUT_KEYS.has(key))
     );
+    const client = this.client();
+    return this.call(() => client.submit(model, params, getSignal(req).signal));
   }
 
   @Get('/generations/:id')
@@ -102,5 +114,52 @@ export class CopilotMuapiController {
     }
     const client = this.client();
     return this.call(() => client.result(id, getSignal(req).signal));
+  }
+
+  /**
+   * Streams a finished output through the server, so the client can store it as
+   * a blob without depending on the CDN's CORS headers.
+   */
+  @Get('/generations/:id/outputs/:index')
+  @CallMetric('ai', 'muapi_output')
+  async output(
+    @CurrentUser() _user: CurrentUser,
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number
+  ) {
+    if (!isValidMuapiRequestId(id)) {
+      throw new BadRequest('Invalid request id');
+    }
+    const client = this.client();
+    const prediction = await this.call(() =>
+      client.result(id, getSignal(req).signal)
+    );
+    const url = prediction.status === 'completed' && prediction.outputs[index];
+    if (!url) {
+      throw new NotFound('Muapi output not found');
+    }
+
+    const upstream = await safeFetch(
+      url,
+      { method: 'GET' },
+      { maxBytes: MAX_OUTPUT_BYTES, timeoutMs: OUTPUT_TIMEOUT_MS }
+    );
+    if (!upstream.ok) {
+      throw new CopilotProviderSideError({
+        provider: 'muapi',
+        kind: `http_${upstream.status}`,
+        message: 'Failed to download Muapi output',
+      });
+    }
+    const type = upstream.headers.get('content-type') ?? '';
+    res.set({
+      'Content-Type': /^(image|video)\//.test(type)
+        ? type
+        : 'application/octet-stream',
+      'Cache-Control': 'private, max-age=3600',
+    });
+    res.send(Buffer.from(await upstream.arrayBuffer()));
   }
 }
