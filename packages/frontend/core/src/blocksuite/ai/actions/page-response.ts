@@ -50,6 +50,7 @@ export async function pageResponseHandler<
       await responseToCreateSlides(host, ctx, place);
       break;
     case 'createImage':
+    case 'createMuapiImage':
     case 'filterImage':
     case 'processImage':
       responseToCreateImage(host, place);

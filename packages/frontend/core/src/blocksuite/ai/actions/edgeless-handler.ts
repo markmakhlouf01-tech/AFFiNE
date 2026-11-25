@@ -410,7 +410,8 @@ export function actionToHandler<T extends keyof BlockSuitePresets.AIActions>(
 
     const toolbar = getToolbar(host);
     const isEmpty = selectedElements.length === 0;
-    const isCreateImageAction = id === 'createImage';
+    const isCreateImageAction =
+      id === 'createImage' || id === 'createMuapiImage';
     const isMakeItRealAction = !isCreateImageAction && id === 'makeItReal';
     let referenceElement = null;
     let togglePanel = () => Promise.resolve(isEmpty);

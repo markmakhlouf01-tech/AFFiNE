@@ -393,6 +393,26 @@ const generateFromTextGroup: AIItemGroupConfig = {
       ),
     },
     {
+      name: 'Generate an image with Muapi',
+      icon: ImageIcon(),
+      testId: 'action-generate-muapi-image',
+      showWhen: notAllAIChatBlockShowWhen,
+      handler: actionToHandler(
+        'createMuapiImage',
+        AIImageIconWithAnimation,
+        undefined,
+        async (host, ctx) => {
+          // Muapi generation is text to image: use the selection's text, or
+          // what the user typed in the AI panel.
+          const content =
+            ctx.get().content?.trim() ||
+            getAIPanelWidget(host).inputText?.trim();
+          if (!content) return;
+          return { input: content };
+        }
+      ),
+    },
+    {
       name: 'Expand from this mind map node',
       icon: MindmapNodeIcon(),
       testId: 'action-expand-mindmap-node',

@@ -178,6 +178,7 @@ async function edgelessResponseHandler<
       await responseToCreateSlides(host, ctx);
       break;
     case 'createImage':
+    case 'createMuapiImage':
     case 'filterImage':
     case 'processImage':
       responseToCreateImage(host);
@@ -690,6 +691,7 @@ async function edgelesContinueResponseHandler<
       context = continueCreateSlides(ctx);
       break;
     case 'createImage':
+    case 'createMuapiImage':
     case 'filterImage':
     case 'processImage':
       context = await continueCreateImage(host);

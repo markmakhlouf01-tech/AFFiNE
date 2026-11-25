@@ -343,6 +343,13 @@ const GenerateFromTextAIGroup: AIItemGroupConfig = {
       handler: actionToHandler('createImage', AIImageIconWithAnimation),
     },
     {
+      name: 'Generate an image with Muapi',
+      testId: 'action-generate-muapi-image',
+      icon: ImageIcon(),
+      showWhen: textBlockShowWhen,
+      handler: actionToHandler('createMuapiImage', AIImageIconWithAnimation),
+    },
+    {
       name: 'Brainstorm ideas with mind map',
       testId: 'action-brainstorm-mindmap',
       icon: MindmapIcon(),

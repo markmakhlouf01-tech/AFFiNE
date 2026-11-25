@@ -10,6 +10,8 @@ export type AIActionDefinition = {
   id: AIActionId;
   promptName: PromptKey | ((options: AIActionOptions) => PromptKey);
   responseType: 'text' | 'image';
+  /** Runs outside the copilot session pipeline, through the server's Muapi proxy. */
+  executor?: 'muapi';
   endpoint?: Endpoint;
   actionId?: string | ((options: AIActionOptions) => string | undefined);
   actionVersion?: string | ((options: AIActionOptions) => string | undefined);
@@ -163,6 +165,19 @@ Could you make a new website based on these notes and send back just the html fi
       !options.input && options.attachments
         ? 'Make the image more detailed.'
         : options.input,
+  },
+  createMuapiImage: {
+    id: 'createMuapiImage',
+    promptName: 'Generate image',
+    responseType: 'image',
+    executor: 'muapi',
+    timeout: 300000,
+    buildContent: options => options.input,
+    validate: options => {
+      if (!options.input?.trim()) {
+        throw new Error('Muapi image generation needs a text prompt');
+      }
+    },
   },
   filterImage: {
     id: 'filterImage',
