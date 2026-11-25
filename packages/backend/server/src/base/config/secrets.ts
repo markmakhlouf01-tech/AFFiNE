@@ -2,6 +2,7 @@ export const NODE_SECRET_CONFIG_KEYS = new Set([
   'calendar.google',
   'captcha.config',
   'copilot.exa',
+  'copilot.muapi',
   'copilot.unsplash',
   'mailer.fallbackSMTP.password',
   'mailer.SMTP.password',

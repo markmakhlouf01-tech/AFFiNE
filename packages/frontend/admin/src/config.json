@@ -310,6 +310,10 @@
       "type": "Object",
       "desc": "The config for the exa web search key."
     },
+    "muapi": {
+      "type": "Object",
+      "desc": "The config for Muapi image and video generation (https://muapi.ai)."
+    },
     "enabled": {
       "type": "Boolean",
       "desc": "Enable AI features. Workspace owners configure provider keys in Workspace Settings → Integrations → AI BYOK."

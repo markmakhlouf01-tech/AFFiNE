@@ -17,6 +17,7 @@ import { CopilotFeatureGuard, CopilotFeatureService } from './feature';
 import { WorkspaceMcpController } from './mcp/controller';
 import { McpCredentialService } from './mcp/credential';
 import { McpCredentialResolver } from './mcp/resolver';
+import { CopilotMuapiController } from './muapi/controller';
 import {
   COPILOT_API_PROVIDERS,
   COPILOT_FEATURE_PROVIDERS,
@@ -86,6 +87,7 @@ export class CopilotApiModule {}
   controllers: [
     CopilotAttachmentController,
     CopilotController,
+    CopilotMuapiController,
     WorkspaceMcpController,
   ],
 })

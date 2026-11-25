@@ -35,7 +35,7 @@ export type NodeConfig = Omit<
     AppConfig['auth'],
     'passwordRequirements' | 'signInRateLimit' | 'trustedCloudflareHeaders'
   >;
-  copilot: Pick<AppConfig['copilot'], 'exa' | 'unsplash'>;
+  copilot: Pick<AppConfig['copilot'], 'exa' | 'muapi' | 'unsplash'>;
   db: Pick<AppConfig['db'], 'prisma'>;
   payment: Pick<AppConfig['payment'], 'showLifetimePrice'>;
   storages: {

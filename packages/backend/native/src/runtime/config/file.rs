@@ -124,6 +124,7 @@ impl ServerConfig {
       ("auth", "signInRateLimit"),
       ("auth", "trustedCloudflareHeaders"),
       ("copilot", "exa"),
+      ("copilot", "muapi"),
       ("copilot", "unsplash"),
       ("db", "prisma"),
       ("payment", "showLifetimePrice"),

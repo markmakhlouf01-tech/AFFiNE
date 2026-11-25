@@ -1673,6 +1673,14 @@
             "key": ""
           }
         },
+        "muapi": {
+          "type": "object",
+          "description": "The config for Muapi image and video generation (https://muapi.ai).\n@default {\"key\":\"\",\"baseUrl\":\"https://api.muapi.ai/api/v1\"}",
+          "default": {
+            "key": "",
+            "baseUrl": "https://api.muapi.ai/api/v1"
+          }
+        },
         "enabled": {
           "type": "boolean",
           "description": "Enable AI features. Workspace owners configure provider keys in Workspace Settings → Integrations → AI BYOK.\n@default false",

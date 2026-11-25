@@ -51,6 +51,10 @@ declare global {
       exa: ConfigItem<{
         key: string;
       }>;
+      muapi: ConfigItem<{
+        key: string;
+        baseUrl?: string;
+      }>;
       storage: ConfigItem<StorageProviderConfig>;
       providers: {
         profiles: ConfigItem<CopilotProviderProfile[]>;
@@ -74,6 +78,13 @@ defineNativeModuleConfig(
       desc: 'The config for the exa web search key.',
       default: {
         key: '',
+      },
+    },
+    muapi: {
+      desc: 'The config for Muapi image and video generation (https://muapi.ai).',
+      default: {
+        key: '',
+        baseUrl: 'https://api.muapi.ai/api/v1',
       },
     },
   }
